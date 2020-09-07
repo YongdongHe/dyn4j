@@ -30,6 +30,7 @@ import java.util.List;
 
 import org.dyn4j.geometry.Convex;
 import org.dyn4j.geometry.Transform;
+import org.dyn4j.geometry.Vector2;
 
 /**
  * Represents a delegating {@link NarrowphaseDetector} that uses a primary {@link NarrowphaseDetector} and
@@ -53,7 +54,7 @@ import org.dyn4j.geometry.Transform;
  * The primary and fallback detectors can also be {@link FallbackNarrowphaseDetector}s as well allowing for a chain of 
  * fallbacks.
  * @author William Bittle
- * @version 3.2.0
+ * @version 4.1.0
  * @since 3.1.5
  */
 public class FallbackNarrowphaseDetector implements NarrowphaseDetector {
@@ -157,6 +158,17 @@ public class FallbackNarrowphaseDetector implements NarrowphaseDetector {
 			}
 		}
 		return false;
+	}
+	
+	/* (non-Javadoc)
+	 * @see org.dyn4j.collision.narrowphase.NarrowphaseDetector#detect(org.dyn4j.geometry.Convex, org.dyn4j.geometry.Transform, org.dyn4j.geometry.Convex, org.dyn4j.geometry.Transform, org.dyn4j.collision.narrowphase.Penetration, org.dyn4j.geometry.Vector2)
+	 */
+	@Override
+	public boolean detect(Convex convex1, Transform transform1, Convex convex2, Transform transform2, Penetration penetration, Vector2 separationNormal) {
+		if (this.isFallbackRequired(convex1, convex2)) {
+			return this.fallbackNarrowphaseDetector.detect(convex1, transform1, convex2, transform2, penetration, separationNormal);
+		}
+		return this.primaryNarrowphaseDetector.detect(convex1, transform1, convex2, transform2, penetration, separationNormal);
 	}
 	
 	/* (non-Javadoc)

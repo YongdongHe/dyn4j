@@ -99,7 +99,7 @@ import org.dyn4j.world.result.RaycastResult;
  * methods to handle certain scenarios like fixture removal on a body or bodies added to
  * more than one world. Callers should <b>NOT</b> use the methods.
  * @author William Bittle
- * @version 4.0.0
+ * @version 4.1.0
  * @since 4.0.0
  * @param <T> the {@link CollisionBody} type
  * @param <E> the {@link Fixture} type
@@ -1243,7 +1243,8 @@ public abstract class AbstractCollisionWorld<T extends CollisionBody<E>, E exten
 
 			// narrowphase detection
 			Penetration penetration = collision.getPenetration();
-			if (AbstractCollisionWorld.this.narrowphaseDetector.detect(convex1, transform1, convex2, transform2, penetration)) {
+			Vector2 lastSeparationNormal = collision.getLastSeparationNormal();
+			if (AbstractCollisionWorld.this.narrowphaseDetector.detect(convex1, transform1, convex2, transform2, penetration, lastSeparationNormal)) {
 				// check for zero penetration
 				if (penetration.getDepth() == 0.0) {
 					// this should only happen if numerical error occurs

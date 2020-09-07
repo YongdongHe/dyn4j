@@ -39,7 +39,7 @@ import org.dyn4j.geometry.Vector2;
  * collision detection. Use the {@link #isBroadphaseCollision()} and similar methods to determine the
  * progress of the collision.
  * @author William Bittle
- * @version 4.0.0
+ * @version 4.1.0
  * @since 4.0.0
  * @param <T> the {@link PhysicsBody} type
  */
@@ -62,6 +62,9 @@ public class WorldCollisionData<T extends PhysicsBody> implements ContactCollisi
 	/** The narrowphase data */
 	private final Penetration penetration;
 	
+	/** The last separation normal */
+	private final Vector2 lastSeparationNormal;
+	
 	/** The manifold data */
 	private final Manifold manifold;
 	
@@ -75,6 +78,7 @@ public class WorldCollisionData<T extends PhysicsBody> implements ContactCollisi
 	public WorldCollisionData(CollisionPair<T, BodyFixture> pair) {
 		this.pair = pair;
 		this.penetration = new Penetration();
+		this.lastSeparationNormal = new Vector2();
 		this.manifold = new Manifold();
 		this.contactConstraint = new ContactConstraint<T>(pair);
 		
@@ -146,6 +150,14 @@ public class WorldCollisionData<T extends PhysicsBody> implements ContactCollisi
 	@Override
 	public Penetration getPenetration() {
 		return this.penetration;
+	}
+	
+	/* (non-Javadoc)
+	 * @see org.dyn4j.world.NarrowphaseCollisionData#getLastSeparationNormal()
+	 */
+	@Override
+	public Vector2 getLastSeparationNormal() {
+		return this.lastSeparationNormal;
 	}
 
 	/* (non-Javadoc)
@@ -230,6 +242,8 @@ public class WorldCollisionData<T extends PhysicsBody> implements ContactCollisi
 		this.manifoldCollision = false;
 		this.contactConstraintCollision = false;
 		this.penetration.clear();
+		// don't clear the separation normal because we use that for
+		// early outs in the case of constant non-intersection
 		this.manifold.clear();
 		// don't clear the contact constraint because we need to report
 		// ending of contacts based on the old data

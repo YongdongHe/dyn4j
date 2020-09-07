@@ -46,7 +46,7 @@ import org.dyn4j.geometry.Vector2;
  * with the least overlap.  The normal will be the edge normal of the {@link Interval} and the depth will be the {@link Interval}
  * overlap.
  * @author William Bittle
- * @version 3.0.2
+ * @version 4.1.0
  * @since 1.0.0
  * @see <a href="http://www.dyn4j.org/2010/01/sat/" target="_blank">SAT (Separating Axis Theorem)</a>
  */
@@ -56,6 +56,14 @@ public class Sat implements NarrowphaseDetector {
 	 */
 	@Override
 	public boolean detect(Convex convex1, Transform transform1, Convex convex2, Transform transform2, Penetration penetration) {
+		return this.detect(convex1, transform1, convex2, transform2, penetration, null);
+	}
+	
+	/* (non-Javadoc)
+	 * @see org.dyn4j.collision.narrowphase.NarrowphaseDetector#detect(org.dyn4j.geometry.Convex, org.dyn4j.geometry.Transform, org.dyn4j.geometry.Convex, org.dyn4j.geometry.Transform, org.dyn4j.collision.narrowphase.Penetration, org.dyn4j.geometry.Vector2)
+	 */
+	@Override
+	public boolean detect(Convex convex1, Transform transform1, Convex convex2, Transform transform2, Penetration penetration, Vector2 separationNormal) {
 		// check for circles
 		if (convex1 instanceof Circle && convex2 instanceof Circle) {
 			// if its a circle - circle collision use the faster method
@@ -65,6 +73,18 @@ public class Sat implements NarrowphaseDetector {
 		penetration.clear();
 		Vector2 n = null;
 		double overlap = Double.MAX_VALUE;
+		
+		// check using the separation normal first
+		if (separationNormal != null && !separationNormal.isZero()) {
+			// project both shapes onto the axis
+    		Interval intervalA = convex1.project(separationNormal, transform1);
+            Interval intervalB = convex2.project(separationNormal, transform2);
+            // if the intervals do not overlap then the two shapes
+            // cannot be intersecting
+            if (!intervalA.overlaps(intervalB)) {
+            	return false;
+            }
+		}
 		
 		// get the foci from both shapes, the foci are used to test any
 		// voronoi regions of the other shape
@@ -88,7 +108,10 @@ public class Sat implements NarrowphaseDetector {
 		            // if the intervals do not overlap then the two shapes
 		            // cannot be intersecting
 		            if (!intervalA.overlaps(intervalB)) {
-		            	// the shapes cannot be intersecting so immediately return null
+		            	if (separationNormal != null ) {
+		            		separationNormal.set(axis);
+		            	}
+		            	// the shapes cannot be intersecting so immediately return
 		            	return false;
 		            } else {
 		            	// get the overlap
@@ -133,7 +156,10 @@ public class Sat implements NarrowphaseDetector {
 		            // if the intervals do not overlap then the two shapes
 		            // cannot be intersecting
 		            if (!intervalA.overlaps(intervalB)) {
-		            	// the shapes cannot be intersecting so immediately return null
+		            	if (separationNormal != null ) {
+		            		separationNormal.set(axis);
+		            	}
+		            	// the shapes cannot be intersecting so immediately return
 		            	return false;
 		            } else {
 		            	// if the intervals do overlap then get save the depth and axis
@@ -171,6 +197,10 @@ public class Sat implements NarrowphaseDetector {
 		if (cToc.dot(n) < 0) {
 			// negate the normal if its not
 			n.negate();
+		}
+		
+		if (separationNormal != null) {
+			separationNormal.zero();
 		}
 		
 		// fill the penetration object

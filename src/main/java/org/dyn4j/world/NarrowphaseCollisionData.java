@@ -27,11 +27,12 @@ package org.dyn4j.world;
 import org.dyn4j.collision.CollisionBody;
 import org.dyn4j.collision.Fixture;
 import org.dyn4j.collision.narrowphase.Penetration;
+import org.dyn4j.geometry.Vector2;
 
 /**
  * Represents a narrowphase collision.
  * @author William Bittle
- * @version 4.0.0
+ * @version 4.1.0
  * @since 4.0.0
  * @param <T> the {@link CollisionBody} type
  * @param <E> the {@link Fixture} type
@@ -42,4 +43,12 @@ public interface NarrowphaseCollisionData<T extends CollisionBody<E>, E extends 
 	 * @return {@link Penetration}
 	 */
 	public Penetration getPenetration();
+	
+	/**
+	 * Returns the last separation normal when the two bodies
+	 * were found to not be in collision.
+	 * @return Vector2
+	 * @since 4.1.0
+	 */
+	public Vector2 getLastSeparationNormal();
 }

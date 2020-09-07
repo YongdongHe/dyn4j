@@ -27,6 +27,7 @@ package org.dyn4j.collision.narrowphase;
 import org.dyn4j.geometry.Convex;
 import org.dyn4j.geometry.Shape;
 import org.dyn4j.geometry.Transform;
+import org.dyn4j.geometry.Vector2;
 
 /**
  * Represents an algorithm to detect whether two {@link Convex} {@link Shape}s are 
@@ -40,7 +41,7 @@ import org.dyn4j.geometry.Transform;
  * {@link Shape}s.  Doing so allows for faster and simpler code.  Concave objects can also
  * be supported by performing a convex decomposition and testing the convex pieces individually.
  * @author William Bittle
- * @version 1.0.3
+ * @version 4.1.0
  * @since 1.0.0
  */
 public interface NarrowphaseDetector {
@@ -55,6 +56,28 @@ public interface NarrowphaseDetector {
 	 * @return boolean
 	 */
 	public abstract boolean detect(Convex convex1, Transform transform1, Convex convex2, Transform transform2, Penetration penetration);
+	
+	/**
+	 * Returns true if the two {@link Convex} {@link Shape}s intersect and fills
+	 * the {@link Penetration} object with the penetration vector and depth.
+	 * <p>
+	 * The <code>separationNormal</code> argument is intended to for both an input
+	 * and output. As input, this represents the last separation normal detected.
+	 * As output, this represents the separation normal when the two shapes are not
+	 * intersecting. When supplied <code>null</code>, it's ignored. When supplied a
+	 * zero vector, it's ignored for input, but set on non-intersection. The separation
+	 * normal can then be used in subsequent calls to improve performance in non-intersection
+	 * cases.
+	 * @param convex1 the first {@link Convex} {@link Shape}
+	 * @param transform1 the first {@link Shape}'s {@link Transform}
+	 * @param convex2 the second {@link Convex} {@link Shape}
+	 * @param transform2 the second {@link Shape}'s {@link Transform}
+	 * @param penetration the {@link Penetration} object to fill
+	 * @param separationNormal the last separation normal (in/out)
+	 * @return boolean
+	 * @since 4.1.0
+	 */
+	public abstract boolean detect(Convex convex1, Transform transform1, Convex convex2, Transform transform2, Penetration penetration, Vector2 separationNormal);
 	
 	/**
 	 * Returns true if the two {@link Convex} {@link Shape}s intersect.

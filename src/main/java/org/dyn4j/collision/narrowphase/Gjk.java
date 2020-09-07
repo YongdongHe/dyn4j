@@ -118,7 +118,7 @@ import org.dyn4j.resources.Messages;
  * {@link Shape}s.  Refer to {@link Gjk#distance(Convex, Transform, Convex, Transform, Separation)}
  * for details on the implementation.
  * @author William Bittle
- * @version 4.0.0
+ * @version 4.1.0
  * @since 1.0.0
  * @see Epa
  * @see <a href="http://www.dyn4j.org/2010/04/gjk-gilbert-johnson-keerthi/" target="_blank">GJK (Gilbert-Johnson-Keerthi)</a>
@@ -184,7 +184,16 @@ public class Gjk implements NarrowphaseDetector, DistanceDetector, RaycastDetect
 	 * @see org.dyn4j.collision.narrowphase.NarrowphaseDetector#detect(org.dyn4j.geometry.Convex, org.dyn4j.geometry.Transform, org.dyn4j.geometry.Convex, org.dyn4j.geometry.Transform, org.dyn4j.collision.narrowphase.Penetration)
 	 */
 	@Override
-	public boolean detect(Convex convex1, Transform transform1, Convex convex2, Transform transform2, Penetration penetration) {
+	public boolean detect(Convex convex1, Transform transform1, Convex convex2, Transform transform2,
+			Penetration penetration) {
+		return this.detect(convex1, transform1, convex2, transform2, penetration, null);
+	}
+	
+	/* (non-Javadoc)
+	 * @see org.dyn4j.collision.narrowphase.NarrowphaseDetector#detect(org.dyn4j.geometry.Convex, org.dyn4j.geometry.Transform, org.dyn4j.geometry.Convex, org.dyn4j.geometry.Transform, org.dyn4j.collision.narrowphase.Penetration, org.dyn4j.geometry.Vector2)
+	 */
+	@Override
+	public boolean detect(Convex convex1, Transform transform1, Convex convex2, Transform transform2, Penetration penetration, Vector2 separationNormal) {
 		// check for circles
 		if (convex1 instanceof Circle && convex2 instanceof Circle) {
 			// if its a circle - circle collision use the faster method
@@ -198,12 +207,25 @@ public class Gjk implements NarrowphaseDetector, DistanceDetector, RaycastDetect
 		MinkowskiSum ms = new MinkowskiSum(convex1, transform1, convex2, transform2);
 		
 		// choose some search direction
-		Vector2 d = this.getInitialDirection(convex1, transform1, convex2, transform2);
+		Vector2 d;
+		if (separationNormal != null && !separationNormal.isZero()) {
+			d = separationNormal.copy();
+		} else {
+			d = this.getInitialDirection(convex1, transform1, convex2, transform2);
+		}
 		
 		// perform the detection
 		if (this.detect(ms, simplex, d)) {
+			if (separationNormal != null) {
+				separationNormal.zero();
+			}
+			
 			this.minkowskiPenetrationSolver.getPenetration(simplex, ms, penetration);
 			return true;
+		}
+		
+		if (separationNormal != null) {
+			separationNormal.set(d);
 		}
 		
 		return false;
